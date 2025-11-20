@@ -19,6 +19,7 @@ import type { GenerateOutfitRecommendationsOutput } from "@/ai/flows/generate-ou
 import { Heart, Loader2, Star } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "../ui/skeleton";
+import { cn } from "@/lib/utils";
 
 type Recommendation = GenerateOutfitRecommendationsOutput[0];
 
