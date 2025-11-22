@@ -5,23 +5,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import {
-  LayoutDashboard,
   LogOut,
   User,
 } from 'lucide-react';
 
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
-  SidebarTrigger,
-  SidebarInset,
-} from '@/components/ui/sidebar';
 import Logo from '@/components/common/logo';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,10 +24,6 @@ import { WardrobeProvider } from '@/contexts/wardrobe-context';
 
 function UserMenu() {
     const { data: session, status } = useSession();
-    
-    // Debug: log session data
-    console.log('Session:', session);
-    console.log('User image:', session?.user?.image);
     
     if (status === 'loading') {
         return (
@@ -78,9 +61,8 @@ function UserMenu() {
                     </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+                 <DropdownMenuItem asChild>
+                    <Link href="/dashboard/history">Outfit History</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })}>
@@ -93,55 +75,19 @@ function UserMenu() {
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isActive = (path: string) => pathname === path;
-
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader className="border-b">
-          <div className="text-foreground p-2">
-            <Logo />
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive('/dashboard')} tooltip="Dashboard">
-                <Link href="/dashboard">
-                  <LayoutDashboard />
-                  <span>Dashboard</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter className="border-t">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Logout">
-                <Link href="/">
-                  <LogOut />
-                  <span>Logout</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-      </Sidebar>
-      <SidebarInset className="flex flex-col">
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 shadow-sm">
-          <SidebarTrigger className="hover:bg-accent" />
-          <UserMenu />
-        </header>
-        <main className="flex-1 p-6 md:p-8 lg:p-10 bg-gradient-to-br from-background to-muted/20 overflow-auto">
-          <div className="max-w-7xl mx-auto">
-            <WardrobeProvider>
-              {children}
-            </WardrobeProvider>
-          </div>
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="flex flex-col min-h-dvh">
+      <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 shadow-sm">
+        <Logo />
+        <UserMenu />
+      </header>
+      <main className="flex-1 p-6 md:p-8 lg:p-10">
+        <div className="max-w-7xl mx-auto">
+          <WardrobeProvider>
+            {children}
+          </WardrobeProvider>
+        </div>
+      </main>
+    </div>
   );
 }

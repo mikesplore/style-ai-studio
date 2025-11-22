@@ -7,32 +7,26 @@ import { Bot, Scan, Shirt } from "lucide-react";
 export default function DashboardPage() {
   return (
     <div className="animate-fade-in">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          Personal Dashboard
-        </h1>
-        <p className="mt-2 text-muted-foreground text-lg">
-          Explore AI-powered tools to elevate your style
-        </p>
-      </div>
-      <Tabs defaultValue="recommender" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 md:w-[600px] h-auto p-1 bg-muted/50">
-          <TabsTrigger value="recommender" className="data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
-            <Bot className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Style Recommender</span>
-            <span className="sm:hidden">Style</span>
-          </TabsTrigger>
-          <TabsTrigger value="try-on" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground transition-all">
-            <Scan className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Virtual Try-On</span>
-            <span className="sm:hidden">Try-On</span>
-          </TabsTrigger>
-          <TabsTrigger value="wardrobe" className="data-[state=active]:bg-primary data-[state=active]:text-white transition-all">
-            <Shirt className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">My Wardrobe</span>
-            <span className="sm:hidden">Wardrobe</span>
-          </TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="try-on" className="w-full">
+        <div className="flex justify-center">
+            <TabsList className="grid w-full grid-cols-3 md:w-[600px] h-auto p-1 bg-muted/50 rounded-full">
+              <TabsTrigger value="recommender" className="rounded-full data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-md transition-all">
+                <Bot className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Recommender</span>
+                <span className="sm:hidden">Style</span>
+              </TabsTrigger>
+              <TabsTrigger value="try-on" className="rounded-full data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-md transition-all">
+                <Scan className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Virtual Try-On</span>
+                <span className="sm:hidden">Try-On</span>
+              </TabsTrigger>
+              <TabsTrigger value="wardrobe" className="rounded-full data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-md transition-all">
+                <Shirt className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">My Wardrobe</span>
+                <span className="sm:hidden">Wardrobe</span>
+              </TabsTrigger>
+            </TabsList>
+        </div>
         <TabsContent value="recommender" className="mt-8">
           <StyleRecommender />
         </TabsContent>

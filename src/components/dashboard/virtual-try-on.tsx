@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-// Use API route instead of Next.js Server Action to avoid forwarded host/origin mismatch
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -40,7 +39,7 @@ export default function VirtualTryOn() {
       toast({
         variant: "destructive",
         title: "Missing Images",
-        description: "Please select both a photo and a wardrobe item.",
+        description: "Please select both a photo of you and a wardrobe item.",
       });
       return;
     }
@@ -49,7 +48,6 @@ export default function VirtualTryOn() {
     setResultImage(null);
 
     try {
-      // Find the selected images to get their dataUri
       const userPhoto = userPhotos.find((p) => p.url === selectedUserPhoto);
       const wardrobeItem = wardrobeItems.find((w) => w.url === selectedWardrobeItem);
 
@@ -57,7 +55,6 @@ export default function VirtualTryOn() {
         throw new Error("Selected images not found");
       }
 
-      // Fetch actual data URIs from the image URLs (since we don't store them in localStorage)
       const userPhotoDataUri = userPhoto.dataUri || await getImageDataUri(userPhoto.url);
       const outfitImageDataUri = wardrobeItem.dataUri || await getImageDataUri(wardrobeItem.url);
 
@@ -81,32 +78,9 @@ export default function VirtualTryOn() {
       } else {
         setResultImage(result.tryOnImageDataUri || result.tryOnImage || null);
         toast({ title: "Success!", description: "Try-on generated successfully" });
-        
-        /* Temporarily disabled - Drive save
-        try {
-          await fetch("/api/save-outfit", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              imageDataUri: result.tryOnImageDataUri,
-              fileName: `try-on-${Date.now()}.png`,
-            }),
-          });
-          
-          toast({
-            title: "Success!",
-            description: "Try-on generated and saved to Google Drive",
-          });
-        } catch (saveError) {
-          console.error("Failed to save to Drive:", saveError);
-          toast({
-            title: "Generated!",
-            description: "Try-on generated (save to Drive failed)",
-          });
-        }
-        */
       }
     } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -118,31 +92,23 @@ export default function VirtualTryOn() {
   };
 
   return (
-    <Card className="border-2 hover:border-primary/50 transition-all shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10 border-b">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-primary rounded-lg">
-            <Wand2 className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <CardTitle className="text-2xl">Virtual Try-On</CardTitle>
-            <CardDescription className="text-base mt-1">
-              See how clothing looks on you with AI-powered visualization
-            </CardDescription>
-          </div>
-        </div>
+    <Card className="max-w-4xl mx-auto border-0 shadow-none">
+      <CardHeader className="text-center">
+        <CardTitle className="text-3xl font-bold tracking-tight">Virtual Try-On</CardTitle>
+        <CardDescription className="text-lg text-muted-foreground">
+          See how clothing looks on you with AI-powered visualization.
+        </CardDescription>
       </CardHeader>
-      <CardContent className="p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+      <CardContent>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          <form onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-3">
-              <label className="font-semibold text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary text-white text-sm">1</span>
-                Your Photo
-              </label>
+              <div className="flex items-center gap-3">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-md">1</span>
+                  <label className="font-semibold text-xl">Your Photo</label>
+              </div>
               {userPhotos.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                  <Upload className="h-10 w-10 text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground mb-3">Upload your photo first</p>
                   <Button
                     type="button"
@@ -174,21 +140,20 @@ export default function VirtualTryOn() {
                     </SelectContent>
                   </Select>
                   {selectedUserPhoto && (
-                    <div className="rounded-xl border-2 border-dashed border-primary/30 p-3 bg-gradient-to-br from-primary/5 to-transparent hover:border-primary/50 transition-colors">
-                      <Image src={selectedUserPhoto} alt="Selected user" width={120} height={120} className="rounded-lg object-cover mx-auto shadow-md" />
+                    <div className="p-3">
+                      <Image src={selectedUserPhoto} alt="Selected user" width={150} height={150} className="rounded-lg object-cover mx-auto shadow-md" />
                     </div>
                   )}
                 </>
               )}
             </div>
             <div className="space-y-3">
-              <label className="font-semibold text-lg flex items-center gap-2">
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-accent text-accent-foreground text-sm">2</span>
-                Wardrobe Item
-              </label>
+              <div className="flex items-center gap-3">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-md">2</span>
+                  <label className="font-semibold text-xl">Wardrobe Item</label>
+              </div>
               {wardrobeItems.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-                  <Upload className="h-10 w-10 text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground mb-3">Upload a wardrobe item</p>
                   <Button
                     type="button"
@@ -220,14 +185,14 @@ export default function VirtualTryOn() {
                     </SelectContent>
                   </Select>
                   {selectedWardrobeItem && (
-                    <div className="rounded-xl border-2 border-dashed border-accent/30 p-3 bg-gradient-to-br from-accent/5 to-transparent hover:border-accent/50 transition-colors">
-                      <Image src={selectedWardrobeItem} alt="Selected item" width={120} height={120} className="rounded-lg object-cover mx-auto shadow-md" />
+                    <div className="p-3">
+                      <Image src={selectedWardrobeItem} alt="Selected item" width={150} height={150} className="rounded-lg object-cover mx-auto shadow-md" />
                     </div>
                   )}
                 </>
               )}
             </div>
-            <Button type="submit" disabled={loading || !selectedUserPhoto || !selectedWardrobeItem} className="w-full h-12 text-base bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/30 hover:shadow-xl transition-all disabled:opacity-50">
+            <Button type="submit" disabled={loading || !selectedUserPhoto || !selectedWardrobeItem} className="w-full h-12 text-base shadow-lg shadow-primary/30 hover:shadow-xl transition-all disabled:opacity-50">
               {loading ? (
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               ) : (
@@ -236,12 +201,12 @@ export default function VirtualTryOn() {
               Generate Try-On
             </Button>
           </form>
-          <div className="flex flex-col items-center justify-center bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl p-6 border-2 border-dashed border-primary/20">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-r from-primary to-accent text-white text-sm">3</span>
-              <h3 className="font-semibold text-lg">Result</h3>
-            </div>
-            <div className="relative w-full max-w-[350px] aspect-[3/4] rounded-xl border-2 border-dashed border-primary/30 flex items-center justify-center bg-card overflow-hidden shadow-lg">
+          <div className="flex flex-col items-center justify-start space-y-3">
+              <div className="flex items-center gap-3 self-start">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-accent text-accent-foreground font-bold text-md">3</span>
+                  <h3 className="font-semibold text-xl">Result</h3>
+              </div>
+            <div className="relative w-full max-w-[350px] aspect-[3/4] rounded-xl border-2 border-dashed border-muted flex items-center justify-center bg-card overflow-hidden shadow-inner">
               {loading ? (
                 <Skeleton className="w-full h-full" />
               ) : resultImage ? (
@@ -253,11 +218,8 @@ export default function VirtualTryOn() {
                 />
               ) : (
                 <div className="text-center text-muted-foreground p-6">
-                  <div className="p-4 bg-primary/10 rounded-full w-fit mx-auto mb-4">
-                    <Wand2 className="h-12 w-12 text-primary" />
-                  </div>
+                  <Wand2 className="h-12 w-12 mx-auto mb-4" />
                   <p className="text-base font-medium">Your generated image will appear here</p>
-                  <p className="text-sm mt-2 opacity-75">Select your photo and an item, then click Generate</p>
                 </div>
               )}
             </div>
