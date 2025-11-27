@@ -8,7 +8,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Wand2, Upload, CheckCircle, Plus } from "lucide-react";
+import { Loader2, Wand2, Upload, CheckCircle, Plus, User } from "lucide-react";
 import { useWardrobe } from "@/contexts/wardrobe-context";
 import { useSession } from "next-auth/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
