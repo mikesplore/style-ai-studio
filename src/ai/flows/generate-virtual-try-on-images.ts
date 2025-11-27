@@ -48,28 +48,49 @@ const generateVirtualTryOnImagesFlow = ai.defineFlow(
 
     // Use gemini-2.5-flash-image-preview (nano-banana) for virtual try-on image generation
     const result = await ai.generate({
-      model: 'googleai/gemini-2.5-flash-image-preview',
+      model: 'googleai/gemini-2.5-flash-image-preview', // Ensure this model ID is correct for your provider
       prompt: [
         {
-          text: `You are a professional virtual fashion try-on AI. Your task is to generate a photorealistic image of the person from the first image wearing the clothing items from the following images. If multiple items are provided, layer them realistically (e.g., shirt under a jacket).
-
-CRITICAL INSTRUCTIONS:
-- Generate ONLY an image of the person wearing the clothing.
-- DO NOT generate abstract images, landscapes, or unrelated content.
-- The output MUST show the person from the first image wearing the clothing from the subsequent images.
-- Preserve the person's facial features, body proportions, and pose exactly.
-- Apply the clothing items naturally with realistic fit, wrinkles, and fabric behavior.
-- Match the original photo's lighting, background, and photography style.
-- Ensure seamless integration between the person and the clothing.`,
+          text: `You are a High-Fidelity Virtual Try-On Engine. Your sole function is to perform photorealistic image manipulation to digitally dress the target person in the provided clothing items.
+    
+    STRICT OPERATIONAL PROTOCOLS:
+    
+    1. THE ANCHOR (Immutable Data):
+       - The first image provided is the "Anchor."
+       - You MUST preserve the Anchor's exact facial features, hair, skin texture, body shape, pose, background, and lighting conditions.
+       - DO NOT regenerate the face. The identity must be a pixel-perfect match to the source.
+       - DO NOT alter the background or environment.
+    
+    2. THE ASSETS (Mutable Data):
+       - All subsequent images are "Assets" (clothing).
+       - Extract the texture, pattern, and material properties from the Assets.
+       - Warp and drape these Assets onto the Anchor's body using realistic physics (gravity, tension, folds).
+       - If multiple Assets are provided, layer them logically (e.g., inner wear first, outerwear second).
+    
+    3. INTEGRATION & LIGHTING:
+       - The clothing must interact with the Anchor's original lighting. Cast shadows where the clothes meet the skin.
+       - Match the grain and resolution of the clothing to the Anchor image.
+       - Ensure the clothing follows the volumetric curve of the body; it must not look like a flat sticker.
+    
+    FORBIDDEN ACTIONS:
+    - DO NOT output illustrations, cartoons, or artistic interpretations.
+    - DO NOT change the person's gender, ethnicity, or age.
+    - DO NOT generate a new background.
+    - DO NOT crop the head or change the camera angle.
+    
+    FINAL OUTPUT REQUIREMENT:
+    Return ONLY the modified Anchor image with the Assets applied. The result must be indistinguishable from a real photograph taken in the original setting.`,
         },
         { media: { url: input.userPhotoDataUri } },
         ...mediaParts,
       ],
       config: {
         responseModalities: ['IMAGE'],
-        temperature: 0.3,
-        topK: 20,
-        topP: 0.8,
+        // Lower temperature forces more deterministic, "grounded" results
+        temperature: 0.1, 
+        // Lower TopK restricts the model to the most probable pixels, reducing weird artifacts
+        topK: 10,         
+        topP: 0.9,
       },
     });
 
