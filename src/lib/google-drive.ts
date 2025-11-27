@@ -4,6 +4,9 @@ const FOLDER_NAME = "StyleAI";
 const USER_PHOTOS_FOLDER = "User Photos";
 const WARDROBE_ITEMS_FOLDER = "Wardrobe Items";
 const GENERATED_OUTFITS_FOLDER = "Generated Outfits";
+const MANNEQUIN_IMAGES_FOLDER = "Mannequin Images";
+const PRODUCT_IMAGES_FOLDER = "Product Images";
+
 
 export class GoogleDriveService {
   private drive;
@@ -71,12 +74,22 @@ export class GoogleDriveService {
       GENERATED_OUTFITS_FOLDER,
       mainFolderId
     );
+    const mannequinImagesFolderId = await this.getOrCreateFolder(
+      MANNEQUIN_IMAGES_FOLDER,
+      mainFolderId
+    );
+    const productImagesFolderId = await this.getOrCreateFolder(
+      PRODUCT_IMAGES_FOLDER,
+      mainFolderId
+    );
 
     return {
       mainFolderId,
       userPhotosFolderId,
       wardrobeItemsFolderId,
       generatedOutfitsFolderId,
+      mannequinImagesFolderId,
+      productImagesFolderId,
     };
   }
 
@@ -114,10 +127,25 @@ export class GoogleDriveService {
       fields: "id, webViewLink, thumbnailLink",
     });
 
+    // Make file public for viewing
+    await this.drive.permissions.create({
+        fileId: response.data.id!,
+        requestBody: {
+            role: 'reader',
+            type: 'anyone'
+        }
+    });
+
+    const file = await this.drive.files.get({
+        fileId: response.data.id!,
+        fields: 'id, webViewLink, thumbnailLink'
+    });
+
+
     return {
-      id: response.data.id!,
-      webViewLink: response.data.webViewLink!,
-      thumbnailLink: response.data.thumbnailLink!,
+      id: file.data.id!,
+      webViewLink: file.data.webViewLink!,
+      thumbnailLink: file.data.thumbnailLink!,
     };
   }
 

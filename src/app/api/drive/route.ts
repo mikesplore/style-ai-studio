@@ -25,6 +25,12 @@ export async function POST(request: Request) {
       case "generatedOutfits":
         folderId = folders.generatedOutfitsFolderId;
         break;
+      case "mannequinImages":
+        folderId = folders.mannequinImagesFolderId;
+        break;
+      case "productImages":
+        folderId = folders.productImagesFolderId;
+        break;
       default:
         folderId = folders.mainFolderId;
     }
@@ -64,6 +70,12 @@ export async function GET(request: Request) {
         break;
       case "generatedOutfits":
         folderId = folders.generatedOutfitsFolderId;
+        break;
+      case "mannequinImages":
+        folderId = folders.mannequinImagesFolderId;
+        break;
+      case "productImages":
+        folderId = folders.productImagesFolderId;
         break;
       default:
         return NextResponse.json(
