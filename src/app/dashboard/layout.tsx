@@ -9,6 +9,10 @@ import {
   User,
   LayoutGrid,
   Building,
+  Bot,
+  Scan,
+  Shirt,
+  Palette
 } from 'lucide-react';
 
 import Logo from '@/components/common/logo';
@@ -23,6 +27,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { WardrobeProvider } from '@/contexts/wardrobe-context';
+import { cn } from '@/lib/utils';
+import { BusinessAssetProvider } from '@/contexts/business-asset-context';
 
 function UserMenu() {
     const { data: session, status } = useSession();
@@ -66,17 +72,14 @@ function UserMenu() {
                  <DropdownMenuItem asChild>
                     <Link href="/dashboard">
                         <LayoutGrid className="mr-2 h-4 w-4" />
-                        <span>Personal Dashboard</span>
-                    </Link>
-                </DropdownMenuItem>
-                 <DropdownMenuItem asChild>
-                    <Link href="/business/dashboard">
-                        <Building className="mr-2 h-4 w-4" />
-                        <span>Business Dashboard</span>
+                        <span>Dashboard</span>
                     </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                    <Link href="/dashboard/history">Outfit History</Link>
+                    <Link href="/dashboard/history">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Outfit History</span>
+                    </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })}>
@@ -88,17 +91,53 @@ function UserMenu() {
     )
 }
 
+const navLinks = [
+    { href: "/business/dashboard", label: "Catalog Generator", icon: Palette },
+    { href: "/dashboard", label: "Virtual Try-On", icon: Scan },
+    { href: "/dashboard/recommender", label: "Recommender", icon: Bot },
+    { href: "/dashboard/wardrobe", label: "My Wardrobe", icon: Shirt },
+];
+
+function NavTabs() {
+    const pathname = usePathname();
+    return (
+        <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
+            {navLinks.map(({ href, label, icon: Icon }) => (
+                <Link key={href} href={href} passHref>
+                    <Button
+                        variant={pathname === href ? "default" : "ghost"}
+                        className={cn(
+                            "rounded-full px-4 py-2 text-sm font-medium transition-all",
+                            pathname === href
+                                ? "bg-background text-foreground shadow-md"
+                                : "text-muted-foreground hover:bg-background/50"
+                        )}
+                    >
+                        <Icon className="mr-2 h-4 w-4" />
+                        {label}
+                    </Button>
+                </Link>
+            ))}
+        </div>
+    );
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col min-h-dvh">
-      <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 shadow-sm">
+    <div className="flex flex-col min-h-dvh bg-gradient-to-br from-background to-muted/20">
+      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 shadow-sm">
         <Logo />
+        <div className="flex-1 flex justify-center">
+            <NavTabs />
+        </div>
         <UserMenu />
       </header>
-      <main className="flex-1 p-6 md:p-8 lg:p-10 bg-gradient-to-br from-background to-muted/20 overflow-auto">
+      <main className="flex-1 p-6 md:p-8 lg:p-10 overflow-auto">
         <div className="max-w-7xl mx-auto">
           <WardrobeProvider>
-            {children}
+            <BusinessAssetProvider>
+              {children}
+            </BusinessAssetProvider>
           </WardrobeProvider>
         </div>
       </main>
