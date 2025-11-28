@@ -64,7 +64,7 @@ export default function WardrobeManager() {
   return (
     <div className="space-y-8">
       {categories.map((category) => (
-        <Card key={category.title} className="border-2 hover:border-primary/30 transition-all shadow-lg">
+        <Card key={category.title} className="border-2 transition-all shadow-lg">
           <CardHeader className="flex-row items-center justify-between bg-gradient-to-r from-muted/50 to-transparent border-b">
             <div>
               <CardTitle className="text-xl">{category.title}</CardTitle>
