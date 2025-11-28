@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,43 +8,45 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Wand2, Upload, CheckCircle, Plus, User } from "lucide-react";
+import { Loader2, Wand2, CheckCircle, User, Shirt, Image as ImageIcon } from "lucide-react";
 import { useWardrobe } from "@/contexts/wardrobe-context";
 import { useSession } from "next-auth/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
-const Stepper = () => (
-    <div className="flex items-center justify-center w-full my-8">
-        <div className="flex items-center">
-            <div className="flex flex-col items-center">
-                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold">1</div>
-                <p className="mt-2 text-sm text-foreground">Your Inputs</p>
-            </div>
-            <div className="flex-auto border-t-2 border-primary w-24 mx-4"></div>
-            <div className="flex flex-col items-center">
-                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold">2</div>
-                <p className="mt-2 text-sm text-foreground text-center">Select Wardrobe<br/>Item(s)</p>
-            </div>
-            <div className="flex-auto border-t-2 border-border w-24 mx-4"></div>
-            <div className="flex flex-col items-center">
-                <div className="w-10 h-10 bg-border rounded-full flex items-center justify-center text-muted-foreground font-bold">3</div>
-                <p className="mt-2 text-sm text-muted-foreground">See The Result</p>
-            </div>
-        </div>
-    </div>
-);
-
+const generationSteps = [
+  "Warming up the AI stylist...",
+  "Analyzing your photo...",
+  "Selecting the perfect fabric textures...",
+  "Draping the clothing realistically...",
+  "Matching lighting and shadows...",
+  "Adding the final touches...",
+  "Almost there!",
+];
 
 export default function VirtualTryOn() {
   const [loading, setLoading] = useState(false);
+  const [generationMessage, setGenerationMessage] = useState(generationSteps[0]);
   const [resultImage, setResultImage] = useState<string | null>(null);
-  const { userPhotos, wardrobeItems, addUserPhotos, addWardrobeItems, getImageDataUri } = useWardrobe();
+  const { userPhotos, wardrobeItems, getImageDataUri, isLoading: isWardrobeLoading } = useWardrobe();
   const { toast } = useToast();
   const { data: session } = useSession();
 
   const [selectedUserPhoto, setSelectedUserPhoto] = useState<string>("");
   const [selectedWardrobeItems, setSelectedWardrobeItems] = useState<string[]>([]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (loading) {
+      let i = 0;
+      setGenerationMessage(generationSteps[i]);
+      interval = setInterval(() => {
+        i = (i + 1) % generationSteps.length;
+        setGenerationMessage(generationSteps[i]);
+      }, 2000);
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const handleWardrobeSelect = (itemUrl: string) => {
     setSelectedWardrobeItems(prev => 
@@ -81,17 +83,10 @@ export default function VirtualTryOn() {
     setResultImage(null);
 
     try {
-      const userPhoto = userPhotos.find((p) => p.url === selectedUserPhoto);
-      if (!userPhoto) throw new Error("Selected user photo not found");
-
-      const userPhotoDataUri = userPhoto.dataUri || await getImageDataUri(userPhoto.url);
+      const userPhotoDataUri = await getImageDataUri(selectedUserPhoto);
       
       const outfitImageDataUris = await Promise.all(
-        selectedWardrobeItems.map(async (url) => {
-          const item = wardrobeItems.find((w) => w.url === url);
-          if (!item) throw new Error(`Wardrobe item with url ${url} not found`);
-          return item.dataUri || await getImageDataUri(item.url);
-        })
+        selectedWardrobeItems.map(url => getImageDataUri(url))
       );
 
       const response = await fetch("/api/virtual-try-on", {
@@ -112,7 +107,7 @@ export default function VirtualTryOn() {
       if (generatedImage && session?.accessToken) {
         await fetch('/api/save-outfit', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': "application/json" },
           body: JSON.stringify({ imageDataUri: generatedImage, fileName: `try-on-${Date.now()}.png` }),
         });
         toast({ title: "Success!", description: "Try-on generated and saved to your history." });
@@ -135,79 +130,60 @@ export default function VirtualTryOn() {
   return (
     <Card className="w-full mx-auto border-2 shadow-xl bg-card/80 backdrop-blur-sm">
       <CardContent className="p-8">
-        <div className="text-center mb-4">
-            <h1 className="text-4xl font-bold tracking-tight">AI Magic Try-On: See It To Believe!</h1>
+        <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold tracking-tight">AI Magic Try-On</h1>
             <p className="text-lg text-muted-foreground mt-2">Visualize how different clothing items look on your photo.</p>
         </div>
         
-        <Stepper />
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             <div className="space-y-6">
-                <h3 className="font-semibold text-xl">Your Inputs</h3>
                 <Card>
+                    <CardHeader className="flex-row items-center gap-4 space-y-0 p-4">
+                        <div className="p-3 bg-primary/10 rounded-lg"><User className="w-6 h-6 text-primary" /></div>
+                        <h3 className="font-semibold text-xl">Select Your Photo</h3>
+                    </CardHeader>
                     <CardContent className="p-4">
-                        <div className="flex items-center gap-4">
-                            <div className="relative w-24 h-32 aspect-[3/4] rounded-md bg-muted overflow-hidden border-2">
-                                {selectedUserPhoto ? <Image src={selectedUserPhoto} alt="Selected user photo" fill className="object-cover" /> : <div className="flex items-center justify-center h-full"><User className="w-8 h-8 text-muted-foreground" /></div> }
+                        <ScrollArea className="h-48 w-full rounded-md border">
+                            <div className="p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                                {isWardrobeLoading && Array.from({length: 5}).map((_, i) => <div key={i} className="relative aspect-square bg-muted rounded-md animate-pulse" />)}
+                                {userPhotos.map(photo => (
+                                <div key={photo.id} className="relative aspect-square flex-shrink-0 group" onClick={() => handlePhotoSelect(photo.url)}>
+                                    <Image src={photo.url} alt={photo.fileName} fill className={cn("object-cover rounded-md cursor-pointer transition-all border-4", selectedUserPhoto === photo.url ? "border-primary" : "border-transparent group-hover:border-primary/30")} />
+                                    {selectedUserPhoto === photo.url && (
+                                    <div className="absolute top-1 right-1 bg-primary rounded-full p-0.5 shadow-lg">
+                                        <CheckCircle className="w-4 h-4 text-white" />
+                                    </div>
+                                    )}
+                                </div>
+                                ))}
                             </div>
-                            <div className="flex-1">
-                                <h4 className="font-medium">Upload Your Photo</h4>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="mt-2"
-                                    onClick={() => document.getElementById('user-photo-upload-main')?.click()}
-                                >
-                                    <Upload className="mr-2 h-4 w-4" />
-                                    Choose Photo
-                                </Button>
-                                <input id="user-photo-upload-main" type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files && addUserPhotos(e.target.files)} />
-                            </div>
-                        </div>
+                        </ScrollArea>
                     </CardContent>
                 </Card>
 
-                <div>
-                    <h4 className="font-medium mb-2">Select Wardrobe Item(s)</h4>
-                    <ScrollArea className="h-40 w-full rounded-md border p-4">
-                        <div className="flex space-x-4">
-                            {wardrobeItems.map(item => (
-                            <div key={item.id} className="relative aspect-square h-28 flex-shrink-0" onClick={() => handleWardrobeSelect(item.url)}>
-                                <Image src={item.url} alt={item.fileName} fill className={cn("object-cover rounded-md cursor-pointer transition-all border-2", selectedWardrobeItems.includes(item.url) ? "border-primary" : "border-transparent")} />
-                                {selectedWardrobeItems.includes(item.url) && (
-                                <div className="absolute top-1 right-1 bg-primary rounded-full p-0.5">
-                                    <CheckCircle className="w-4 h-4 text-white" />
+                <Card>
+                    <CardHeader className="flex-row items-center gap-4 space-y-0 p-4">
+                        <div className="p-3 bg-primary/10 rounded-lg"><Shirt className="w-6 h-6 text-primary" /></div>
+                        <h3 className="font-semibold text-xl">Select Wardrobe Item(s)</h3>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                        <ScrollArea className="h-48 w-full rounded-md border">
+                            <div className="p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                                {isWardrobeLoading && Array.from({length: 10}).map((_, i) => <div key={i} className="relative aspect-square bg-muted rounded-md animate-pulse" />)}
+                                {wardrobeItems.map(item => (
+                                <div key={item.id} className="relative aspect-square flex-shrink-0 group" onClick={() => handleWardrobeSelect(item.url)}>
+                                    <Image src={item.url} alt={item.fileName} fill className={cn("object-cover rounded-md cursor-pointer transition-all border-4", selectedWardrobeItems.includes(item.url) ? "border-primary" : "border-transparent group-hover:border-primary/30")} />
+                                    {selectedWardrobeItems.includes(item.url) && (
+                                    <div className="absolute top-1 right-1 bg-primary rounded-full p-0.5 shadow-lg">
+                                        <CheckCircle className="w-4 h-4 text-white" />
+                                    </div>
+                                    )}
                                 </div>
-                                )}
+                                ))}
                             </div>
-                            ))}
-                        </div>
-                    </ScrollArea>
-                    <Button variant="outline" className="mt-2 w-full">
-                        <Plus className="mr-2 h-4 w-4" /> Add More
-                    </Button>
-                </div>
-            </div>
-
-            <div className="space-y-4 sticky top-24">
-                 <h3 className="font-semibold text-xl text-center">The Magic Happens Here!</h3>
-                <div className="relative w-full aspect-[4/5] rounded-xl border-2 border-dashed flex items-center justify-center bg-muted overflow-hidden shadow-inner">
-                    {loading ? (
-                    <div className="flex flex-col items-center justify-center gap-4">
-                        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                        <p className="text-muted-foreground">Generating your try-on...</p>
-                    </div>
-                    ) : resultImage ? (
-                    <Image src={resultImage} alt="Virtual try-on result" fill className="object-cover" />
-                    ) : (
-                    <div className="text-center text-muted-foreground p-6">
-                        <Wand2 className="mx-auto h-12 w-12 mb-2 text-primary" />
-                        <p className="text-base font-medium">Your Virtual Try-On will appear here!</p>
-                    </div>
-                    )}
-                </div>
+                        </ScrollArea>
+                    </CardContent>
+                </Card>
                 <Button 
                     onClick={handleSubmit} 
                     disabled={loading || !selectedUserPhoto || selectedWardrobeItems.length === 0} 
@@ -217,43 +193,28 @@ export default function VirtualTryOn() {
                     <Wand2 className="h-5 w-5" />
                 </Button>
             </div>
+
+            <div className="space-y-4 sticky top-24">
+                 <h3 className="font-semibold text-xl text-center">The Magic Happens Here!</h3>
+                <div className="relative w-full aspect-[4/5] rounded-xl border-2 border-dashed flex items-center justify-center bg-muted/50 overflow-hidden shadow-inner">
+                    {loading ? (
+                    <div className="flex flex-col items-center justify-center gap-4 text-center p-4">
+                        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                        <p className="text-muted-foreground font-medium animate-pulse">{generationMessage}</p>
+                    </div>
+                    ) : resultImage ? (
+                    <Image src={resultImage} alt="Virtual try-on result" fill className="object-contain" />
+                    ) : (
+                    <div className="text-center text-muted-foreground p-6">
+                        <ImageIcon className="mx-auto h-16 w-16 mb-4 text-primary/30" />
+                        <p className="text-lg font-medium">Your Virtual Try-On will appear here!</p>
+                        <p className="text-sm">Select a photo and wardrobe items to get started.</p>
+                    </div>
+                    )}
+                </div>
+            </div>
         </div>
       </CardContent>
     </Card>
   );
 }
-
-const UploadPlaceholder = ({ onUpload, uploadId, label }: { onUpload: (files: FileList) => void; uploadId: string; label:string; }) => (
-    <div className="flex flex-col items-center justify-center text-center p-4 border-2 border-dashed rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors w-full h-full">
-        <p className="text-sm text-muted-foreground mb-3">{label}</p>
-        <Button
-            type="button"
-            variant="outline"
-            onClick={() => document.getElementById(uploadId)?.click()}
-        >
-            <Upload className="mr-2 h-4 w-4" />
-            Upload
-        </Button>
-        <input
-            id={uploadId}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={(e) => e.target.files && onUpload(e.target.files)}
-        />
-    </div>
-  );
-  
-const InputSection = ({ title, items, selectedItem, onSelect, onUpload, uploadId, children }: { title: string, items: any[], selectedItem: string, onSelect: (url: string) => void, onUpload: (files: FileList) => void, uploadId: string, children: React.ReactNode }) => (
-    <div className="space-y-2">
-      <h3 className="font-semibold">{title}</h3>
-      <div className="relative w-full aspect-[4/5] rounded-lg bg-muted overflow-hidden border-2">
-        {selectedItem && <Image src={selectedItem} alt="Selected item" fill className="object-cover" />}
-        {items.length === 0 && (
-           <UploadPlaceholder onUpload={onUpload} uploadId={uploadId} label={`Upload a photo to get started`}/>
-        )}
-      </div>
-      {children}
-    </div>
-);

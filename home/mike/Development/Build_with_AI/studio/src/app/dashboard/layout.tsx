@@ -8,7 +8,6 @@ import {
   LogOut,
   User,
   LayoutGrid,
-  Building,
   Bot,
   Scan,
   Shirt,
@@ -91,15 +90,21 @@ function UserMenu() {
     )
 }
 
-const navLinks = [
-    { href: "/business/dashboard", label: "Catalog Generator", icon: Palette },
+const personalNavLinks = [
     { href: "/dashboard", label: "Virtual Try-On", icon: Scan },
     { href: "/dashboard/recommender", label: "Recommender", icon: Bot },
     { href: "/dashboard/wardrobe", label: "My Wardrobe", icon: Shirt },
 ];
 
+const businessNavLinks = [
+    { href: "/business/dashboard", label: "Catalog Generator", icon: Palette },
+];
+
 function NavTabs() {
     const pathname = usePathname();
+    const isBusinessSection = pathname.startsWith('/business');
+    const navLinks = isBusinessSection ? businessNavLinks : personalNavLinks;
+    
     return (
         <div className="flex items-center space-x-1 bg-muted p-1 rounded-full">
             {navLinks.map(({ href, label, icon: Icon }) => (
