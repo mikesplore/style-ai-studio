@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,7 +9,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Wand2, CheckCircle, User, Shirt, AlertCircle } from "lucide-react";
+import { Loader2, Wand2, CheckCircle, User, Shirt, AlertCircle, Info } from "lucide-react";
 import { useWardrobe } from "@/contexts/wardrobe-context";
 import { useSession } from "next-auth/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,6 +27,8 @@ const generationSteps = [
     "Almost there...",
 ];
 
+const DAILY_LIMIT = 3;
+
 export default function VirtualTryOn() {
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState(generationSteps[0]);
@@ -36,6 +39,27 @@ export default function VirtualTryOn() {
 
   const [selectedUserPhoto, setSelectedUserPhoto] = useState<string>("");
   const [selectedWardrobeItems, setSelectedWardrobeItems] = useState<string[]>([]);
+  
+  const [generationCount, setGenerationCount] = useState(0);
+  const [lastGenerationDate, setLastGenerationDate] = useState("");
+
+  useEffect(() => {
+    const storedCount = localStorage.getItem('generationCount');
+    const storedDate = localStorage.getItem('lastGenerationDate');
+    const today = new Date().toISOString().split('T')[0];
+
+    if (storedDate === today) {
+      setGenerationCount(Number(storedCount) || 0);
+    } else {
+      // It's a new day, reset the counter
+      localStorage.setItem('generationCount', '0');
+      localStorage.setItem('lastGenerationDate', today);
+      setGenerationCount(0);
+    }
+    setLastGenerationDate(today);
+  }, []);
+
+  const canGenerate = generationCount < DAILY_LIMIT;
 
   useEffect(() => {
       let interval: NodeJS.Timeout;
@@ -81,6 +105,15 @@ export default function VirtualTryOn() {
       return;
     }
 
+    if (!canGenerate) {
+      toast({
+        variant: "destructive",
+        title: "Daily Limit Reached",
+        description: `You have reached your daily limit of ${DAILY_LIMIT} generations. Please try again tomorrow.`,
+      });
+      return;
+    }
+
     setLoading(true);
     setResultImage(null);
 
@@ -105,6 +138,11 @@ export default function VirtualTryOn() {
 
       const generatedImage = result.tryOnImageDataUri || null;
       setResultImage(generatedImage);
+
+      const newCount = generationCount + 1;
+      setGenerationCount(newCount);
+      localStorage.setItem('generationCount', String(newCount));
+      localStorage.setItem('lastGenerationDate', lastGenerationDate);
 
       if (generatedImage && session?.accessToken) {
         await fetch('/api/save-outfit', {
@@ -200,10 +238,18 @@ export default function VirtualTryOn() {
                         </div>
                     </ScrollArea>
                 </div>
+                
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertTitle>Daily Limit</AlertTitle>
+                  <AlertDescription>
+                    You can generate {DAILY_LIMIT - generationCount} more image{DAILY_LIMIT - generationCount !== 1 ? 's' : ''} today. Your limit will reset tomorrow.
+                  </AlertDescription>
+                </Alert>
 
                 <Button 
                     onClick={handleSubmit} 
-                    disabled={loading || !selectedUserPhoto || selectedWardrobeItems.length === 0} 
+                    disabled={loading || !selectedUserPhoto || selectedWardrobeItems.length === 0 || !canGenerate} 
                     className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center gap-3"
                 >
                     {loading ? 'Generating...' : 'Generate Try-On Image'}

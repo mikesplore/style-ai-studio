@@ -1,3 +1,4 @@
+
 // src/contexts/wardrobe-context.tsx
 "use client";
 
@@ -7,9 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 
 export type UploadedImage = {
   id: string;
-  url: string; // This will be the local URL for display
+  url: string; // This will be the Google Drive thumbnail URL
   fileName: string;
-  dataUri: string; // Base64 data URI, used temporarily for uploads
   driveFileId?: string; // Google Drive file ID
 };
 
@@ -18,8 +18,8 @@ type WardrobeContextType = {
   wardrobeItems: UploadedImage[];
   addUserPhotos: (files: FileList) => Promise<void>;
   addWardrobeItems: (files: FileList) => Promise<void>;
-  removeUserPhoto: (id: string) => void;
-  removeWardrobeItem: (id: string) => void;
+  removeUserPhoto: (image: UploadedImage) => void;
+  removeWardrobeItem: (image: UploadedImage) => void;
   getImageDataUri: (url: string) => Promise<string>;
   isLoading: boolean;
 };
@@ -73,7 +73,6 @@ export function WardrobeProvider({ children }: { children: React.ReactNode }) {
           url: file.thumbnailLink.replace('=s220', '=s1024'), // Use larger thumbnail
           fileName: file.name,
           driveFileId: file.id,
-          dataUri: "",
         }));
         setUserPhotos(drivePhotos);
       }
@@ -85,7 +84,6 @@ export function WardrobeProvider({ children }: { children: React.ReactNode }) {
           url: file.thumbnailLink.replace('=s220', '=s1024'),
           fileName: file.name,
           driveFileId: file.id,
-          dataUri: "",
         }));
         setWardrobeItems(driveItems);
       }
@@ -126,44 +124,49 @@ export function WardrobeProvider({ children }: { children: React.ReactNode }) {
 
     toast({ title: `Uploading ${files.length} file(s)...`});
 
-    const newImages = await Promise.all(
-      Array.from(files).map(async (file) => {
-        const dataUri = await fileToDataUri(file);
+    try {
+        const newImages = await Promise.all(
+          Array.from(files).map(async (file) => {
+            const dataUri = await fileToDataUri(file);
 
-        // Upload to Google Drive
-        const driveResponse = await fetch("/api/drive", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fileName: file.name,
-            fileData: dataUri,
-            folderType,
-          }),
-        });
+            // Upload to Google Drive
+            const driveResponse = await fetch("/api/drive", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                fileName: file.name,
+                fileData: dataUri,
+                folderType,
+              }),
+            });
 
-        if (!driveResponse.ok) {
-          throw new Error(`Failed to upload to Google Drive: ${file.name}`);
+            if (!driveResponse.ok) {
+              throw new Error(`Failed to upload to Google Drive: ${file.name}`);
+            }
+
+            const driveResult = await driveResponse.json();
+
+            return {
+              id: driveResult.id,
+              url: driveResult.thumbnailLink.replace('=s220', '=s1024'),
+              fileName: file.name,
+              driveFileId: driveResult.id,
+            };
+          })
+        );
+
+        if (folderType === "userPhotos") {
+          setUserPhotos((prev) => [...prev, ...newImages]);
+        } else {
+          setWardrobeItems((prev) => [...prev, ...newImages]);
         }
 
-        const driveResult = await driveResponse.json();
+        toast({ variant: 'default', title: "Upload complete!", description: `${files.length} file(s) saved to Google Drive.` });
 
-        return {
-          id: driveResult.id,
-          url: driveResult.thumbnailLink.replace('=s220', '=s1024'), // Use local URL for immediate display
-          fileName: file.name,
-          dataUri: "", // Don't store large data URI in state
-          driveFileId: driveResult.id,
-        };
-      })
-    );
-
-    if (folderType === "userPhotos") {
-      setUserPhotos((prev) => [...prev, ...newImages]);
-    } else {
-      setWardrobeItems((prev) => [...prev, ...newImages]);
+    } catch (error: any) {
+        console.error("Upload failed:", error);
+        toast({ variant: 'destructive', title: "Upload Failed", description: error.message || "An error occurred during upload."});
     }
-
-    toast({ variant: 'default', title: "Upload complete!", description: `${files.length} file(s) saved to Google Drive.` });
   };
 
 
@@ -175,14 +178,50 @@ export function WardrobeProvider({ children }: { children: React.ReactNode }) {
     await processAndUploadFiles(files, "wardrobeItems");
   };
 
-  const removeUserPhoto = (id: string) => {
-    setUserPhotos((prev) => prev.filter((img) => img.id !== id));
-    // TODO: Add API call to delete from Drive
+  const deleteFromDrive = async (image: UploadedImage) => {
+    if (!image.driveFileId) {
+      toast({ variant: "destructive", title: "Cannot delete", description: "This image does not have a Google Drive ID." });
+      return;
+    }
+    if (!session?.accessToken) {
+      toast({ variant: "destructive", title: "Authentication error." });
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/drive/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileId: image.driveFileId }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete file from Google Drive.");
+      }
+
+      toast({ title: "Deleted from Google Drive", description: `"${image.fileName}" was successfully deleted.` });
+      return true;
+    } catch (error: any) {
+      console.error("Failed to delete file from Drive", error);
+      toast({ variant: "destructive", title: "Deletion Failed", description: error.message });
+      return false;
+    }
   };
 
-  const removeWardrobeItem = (id: string) => {
-    setWardrobeItems((prev) => prev.filter((img) => img.id !== id));
-    // TODO: Add API call to delete from Drive
+  const removeUserPhoto = async (image: UploadedImage) => {
+    const success = await deleteFromDrive(image);
+    if (success) {
+      setUserPhotos((prev) => prev.filter((img) => img.id !== image.id));
+    }
+  };
+
+  const removeWardrobeItem = async (image: UploadedImage) => {
+    const success = await deleteFromDrive(image);
+    if (success) {
+      setWardrobeItems((prev) => prev.filter((img) => img.id !== image.id));
+    }
   };
 
   return (
