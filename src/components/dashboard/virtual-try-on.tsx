@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -65,7 +64,6 @@ export default function VirtualTryOn() {
   useEffect(() => {
     fetchGenerationCount();
   }, [session]);
-
 
   const canGenerate = generationCount < DAILY_LIMIT;
 
@@ -154,10 +152,8 @@ export default function VirtualTryOn() {
         throw new Error(result?.error || "Failed to generate try-on");
       }
       
-      // Increment count on server
       await fetch('/api/user/limit', { method: 'POST' });
       setGenerationCount(prev => prev + 1);
-
 
       const generatedImage = result.tryOnImageDataUri || null;
       setResultImage(generatedImage);
@@ -188,125 +184,196 @@ export default function VirtualTryOn() {
   const hasPrerequisites = userPhotos.length > 0 && wardrobeItems.length > 0;
 
   return (
-    <Card className="w-full mx-auto border-2 shadow-xl bg-card/80 backdrop-blur-sm">
-      <CardContent className="p-8">
-        <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold tracking-tight">AI Magic Try-On</h1>
-            <p className="text-lg text-muted-foreground mt-2">Visualize how different clothing items look on your photo.</p>
-        </div>
-        
-        {!hasPrerequisites && (
-            <Alert className="mb-6 max-w-2xl mx-auto border-accent/50 bg-accent/10">
-              <AlertCircle className="h-5 w-5 text-accent-foreground" />
-              <AlertTitle className="font-semibold">Upload Your Photos First</AlertTitle>
-              <AlertDescription>
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+      <Card className="border-2 shadow-xl bg-card/80 backdrop-blur-sm">
+        <CardContent className="p-4 sm:p-6 lg:p-8">
+          {/* Header */}
+          <div className="text-center mb-6 sm:mb-8 lg:mb-10">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-2 sm:mb-3">
+              AI Magic Try-On
+            </h1>
+            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto">
+              Visualize how different clothing items look on your photo.
+            </p>
+          </div>
+          
+          {/* Prerequisites Alert */}
+          {!hasPrerequisites && (
+            <Alert className="mb-6 sm:mb-8 max-w-3xl mx-auto border-accent/50 bg-accent/10">
+              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-accent-foreground" />
+              <AlertTitle className="font-semibold text-sm sm:text-base">
+                Upload Your Photos First
+              </AlertTitle>
+              <AlertDescription className="text-xs sm:text-sm">
                 To get started, please add photos of yourself and your clothing in the{" "}
-                <Link href="/dashboard/wardrobe" className="font-medium underline text-accent-foreground">
+                <Link href="/dashboard/wardrobe" className="font-medium underline text-accent-foreground hover:opacity-80 transition-opacity">
                   My Wardrobe
                 </Link>{" "}
                 tab.
               </AlertDescription>
             </Alert>
-        )}
+          )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div className="space-y-6">
-                <div>
-                    <h3 className="font-semibold text-lg mb-3">1. Select Your Photo</h3>
-                    <ScrollArea className="h-48 w-full rounded-md border p-4">
-                        <div className="flex space-x-4">
-                            {userPhotos.length > 0 ? userPhotos.map(photo => (
-                                <div key={photo.id} className="relative aspect-[3/4] h-36 flex-shrink-0" onClick={() => handlePhotoSelect(photo.url)}>
-                                    <Image src={photo.url} alt={photo.fileName} fill className={cn("object-cover rounded-md cursor-pointer transition-all border-4", selectedUserPhoto === photo.url ? "border-primary" : "border-transparent")} />
-                                    {selectedUserPhoto === photo.url && (
-                                    <div className="absolute top-1 right-1 bg-primary rounded-full p-1">
-                                        <CheckCircle className="w-5 h-5 text-white" />
-                                    </div>
-                                    )}
-                                </div>
-                            )) : (
-                                <div className="flex flex-col items-center justify-center w-full h-36 text-muted-foreground">
-                                    <User className="w-10 h-10 mb-2"/>
-                                    <p>Your photos will appear here.</p>
-                                </div>
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 xl:gap-12 items-start">
+            {/* Left Column - Selection Panel */}
+            <div className="space-y-5 sm:space-y-6">
+              {/* User Photo Selection */}
+              <div>
+                <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">
+                  1. Select Your Photo
+                </h3>
+                <ScrollArea className="h-40 sm:h-48 w-full rounded-lg border bg-muted/30 p-3 sm:p-4">
+                  <div className="flex space-x-3 sm:space-x-4">
+                    {userPhotos.length > 0 ? (
+                      userPhotos.map(photo => (
+                        <button
+                          key={photo.id}
+                          onClick={() => handlePhotoSelect(photo.url)}
+                          className="relative aspect-[3/4] h-32 sm:h-36 flex-shrink-0 group"
+                        >
+                          <Image 
+                            src={photo.url} 
+                            alt={photo.fileName} 
+                            fill 
+                            className={cn(
+                              "object-cover rounded-md cursor-pointer transition-all border-4 group-hover:scale-[1.02]",
+                              selectedUserPhoto === photo.url 
+                                ? "border-primary shadow-lg" 
+                                : "border-transparent hover:border-primary/30"
                             )}
-                        </div>
-                    </ScrollArea>
-                </div>
-                
-                <div>
-                    <h3 className="font-semibold text-lg mb-3">2. Select Wardrobe Item(s)</h3>
-                    <ScrollArea className="h-48 w-full rounded-md border p-4">
-                        <div className="flex space-x-4">
-                            {wardrobeItems.length > 0 ? wardrobeItems.map(item => (
-                                <div key={item.id} className="relative aspect-square h-36 flex-shrink-0" onClick={() => handleWardrobeSelect(item.url)}>
-                                    <Image src={item.url} alt={item.fileName} fill className={cn("object-cover rounded-md cursor-pointer transition-all border-4", selectedWardrobeItems.includes(item.url) ? "border-primary" : "border-transparent")} />
-                                    {selectedWardrobeItems.includes(item.url) && (
-                                    <div className="absolute top-1 right-1 bg-primary rounded-full p-1">
-                                        <CheckCircle className="w-5 h-5 text-white" />
-                                    </div>
-                                    )}
-                                </div>
-                            )) : (
-                                <div className="flex flex-col items-center justify-center w-full h-36 text-muted-foreground">
-                                    <Shirt className="w-10 h-10 mb-2"/>
-                                    <p>Your wardrobe items will appear here.</p>
-                                </div>
-                            )}
-                        </div>
-                    </ScrollArea>
-                </div>
-                
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertTitle>Daily Limit</AlertTitle>
-                  <AlertDescription>
-                    {isLimitLoading ? (
-                      'Loading your limit...'
+                            sizes="(max-width: 640px) 128px, 144px"
+                          />
+                          {selectedUserPhoto === photo.url && (
+                            <div className="absolute top-1 right-1 bg-primary rounded-full p-1 shadow-md">
+                              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                            </div>
+                          )}
+                        </button>
+                      ))
                     ) : (
-                      `You can generate ${Math.max(0, DAILY_LIMIT - generationCount)} more image${DAILY_LIMIT - generationCount !== 1 ? 's' : ''} today. Your limit will reset tomorrow.`
+                      <div className="flex flex-col items-center justify-center w-full h-32 sm:h-36 text-muted-foreground">
+                        <User className="w-8 h-8 sm:w-10 sm:h-10 mb-2"/>
+                        <p className="text-xs sm:text-sm">Your photos will appear here</p>
+                      </div>
                     )}
-                  </AlertDescription>
-                </Alert>
+                  </div>
+                </ScrollArea>
+              </div>
+              
+              {/* Wardrobe Selection */}
+              <div>
+                <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4">
+                  2. Select Wardrobe Item(s)
+                </h3>
+                <ScrollArea className="h-40 sm:h-48 w-full rounded-lg border bg-muted/30 p-3 sm:p-4">
+                  <div className="flex space-x-3 sm:space-x-4">
+                    {wardrobeItems.length > 0 ? (
+                      wardrobeItems.map(item => (
+                        <button
+                          key={item.id}
+                          onClick={() => handleWardrobeSelect(item.url)}
+                          className="relative aspect-square h-32 sm:h-36 flex-shrink-0 group"
+                        >
+                          <Image 
+                            src={item.url} 
+                            alt={item.fileName} 
+                            fill 
+                            className={cn(
+                              "object-cover rounded-md cursor-pointer transition-all border-4 group-hover:scale-[1.02]",
+                              selectedWardrobeItems.includes(item.url) 
+                                ? "border-primary shadow-lg" 
+                                : "border-transparent hover:border-primary/30"
+                            )}
+                            sizes="(max-width: 640px) 128px, 144px"
+                          />
+                          {selectedWardrobeItems.includes(item.url) && (
+                            <div className="absolute top-1 right-1 bg-primary rounded-full p-1 shadow-md">
+                              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                            </div>
+                          )}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="flex flex-col items-center justify-center w-full h-32 sm:h-36 text-muted-foreground">
+                        <Shirt className="w-8 h-8 sm:w-10 sm:h-10 mb-2"/>
+                        <p className="text-xs sm:text-sm">Your wardrobe items will appear here</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
+              
+              {/* Daily Limit Alert */}
+              <Alert className="border-muted-foreground/20 bg-muted/20">
+                <Info className="h-4 w-4" />
+                <AlertTitle className="text-sm sm:text-base">Daily Limit</AlertTitle>
+                <AlertDescription className="text-xs sm:text-sm">
+                  {isLimitLoading ? (
+                    'Loading your limit...'
+                  ) : (
+                    `You can generate ${Math.max(0, DAILY_LIMIT - generationCount)} more image${DAILY_LIMIT - generationCount !== 1 ? 's' : ''} today. Your limit will reset tomorrow.`
+                  )}
+                </AlertDescription>
+              </Alert>
 
-                <Button 
-                    onClick={handleSubmit} 
-                    disabled={loading || !selectedUserPhoto || selectedWardrobeItems.length === 0 || !canGenerate || isLimitLoading} 
-                    className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center gap-3"
-                >
-                    {loading ? 'Generating...' : 'Generate Try-On Image'}
-                    <Wand2 className="h-5 w-5" />
-                </Button>
+              {/* Generate Button */}
+              <Button 
+                onClick={handleSubmit} 
+                disabled={loading || !selectedUserPhoto || selectedWardrobeItems.length === 0 || !canGenerate || isLimitLoading} 
+                className="w-full h-12 sm:h-14 text-sm sm:text-base lg:text-lg bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2 sm:gap-3"
+              >
+                {loading ? 'Generating...' : 'Generate Try-On Image'}
+                <Wand2 className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
             </div>
 
-            <div className="space-y-4 sticky top-24">
-                 <h3 className="font-semibold text-lg text-center">3. See The Magic Happen!</h3>
-                <div className="relative w-full aspect-[4/5] rounded-xl border-2 border-dashed flex items-center justify-center bg-muted overflow-hidden shadow-inner">
-                    {loading ? (
-                    <div className="flex flex-col items-center justify-center gap-4 text-center px-4">
-                        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                        <p className="text-muted-foreground font-medium animate-fade-in">{loadingText}</p>
-                    </div>
-                    ) : resultImage ? (
-                    <Image src={resultImage} alt="Virtual try-on result" fill className="object-cover animate-fade-in" />
-                    ) : (
-                    <div className="text-center text-muted-foreground p-6">
-                        <Wand2 className="mx-auto h-12 w-12 mb-2 text-primary" />
-                        <p className="text-base font-medium">Your Virtual Try-On will appear here!</p>
-                    </div>
-                    )}
-                </div>
-                {resultImage && !loading && (
-                  <Button onClick={handleDownload} className="w-full" variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Image
-                  </Button>
+            {/* Right Column - Result Preview */}
+            <div className="space-y-4 sm:space-y-5 lg:sticky lg:top-24">
+              <h3 className="font-semibold text-base sm:text-lg text-center">
+                3. See The Magic Happen!
+              </h3>
+              <div className="relative w-full aspect-[4/5] rounded-xl border-2 border-dashed flex items-center justify-center bg-muted/30 overflow-hidden shadow-inner">
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center gap-4 text-center px-4">
+                    <Loader2 className="h-8 w-8 sm:h-10 sm:w-10 animate-spin text-primary" />
+                    <p className="text-xs sm:text-sm lg:text-base text-muted-foreground font-medium animate-pulse">
+                      {loadingText}
+                    </p>
+                  </div>
+                ) : resultImage ? (
+                  <Image 
+                    src={resultImage} 
+                    alt="Virtual try-on result" 
+                    fill 
+                    className="object-cover animate-fade-in" 
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                  />
+                ) : (
+                  <div className="text-center text-muted-foreground p-6">
+                    <Wand2 className="mx-auto h-10 w-10 sm:h-12 sm:w-12 mb-3 text-primary/70" />
+                    <p className="text-sm sm:text-base font-medium">
+                      Your Virtual Try-On will appear here!
+                    </p>
+                  </div>
                 )}
+              </div>
+              
+              {/* Download Button */}
+              {resultImage && !loading && (
+                <Button 
+                  onClick={handleDownload} 
+                  className="w-full h-11 sm:h-12" 
+                  variant="outline"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Image
+                </Button>
+              )}
             </div>
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
-
-    
