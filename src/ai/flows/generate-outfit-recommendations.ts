@@ -91,7 +91,12 @@ const generateOutfitRecommendationsFlow = ai.defineFlow(
     outputSchema: GenerateOutfitRecommendationsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await prompt(input, {
+      model: 'googleai/gemini-2.5-flash-image-preview',
+      config: {
+        responseModalities: ['TEXT', 'IMAGE'],
+      },
+    });
     return output!;
   }
 );
