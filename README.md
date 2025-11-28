@@ -45,8 +45,8 @@ Follow these instructions to set up and run the project locally.
 Clone the repository and install the dependencies:
 
 ```bash
-git clone <repository-url>
-cd <repository-name>
+git clone https://github.com/mikesplore/studio.git
+cd studio
 npm install
 ```
 
