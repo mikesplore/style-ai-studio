@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "hero",
-      "description": "A stylish person using a tablet to design clothes.",
-      "imageUrl": "https://images.unsplash.com/photo-1634511468815-f712f458e852?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxmYXNoaW9uJTIwdGVjaG5vbG9neXxlbnwwfHx8fDE3NjM1MzY5ODF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "fashion technology"
+      "description": "A stylish woman in a bright, modern outfit looking at her phone.",
+      "imageUrl": "https://images.unsplash.com/photo-1552664199-fd31f7431a55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzdHlsaXNoJTIwd29tYW4lMjBtaW5pbWFsfGVufDB8fHx8MTc2NzE1ODIzNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "stylish woman"
     },
     {
       "id": "user-full-body",

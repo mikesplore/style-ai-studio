@@ -1,8 +1,9 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bot, Palette, Scan } from 'lucide-react';
+import { Bot, Palette, Scan, ArrowRight } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Header from '@/components/common/header';
 import Logo from '@/components/common/logo';
@@ -11,112 +12,85 @@ export default function Home() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero');
 
   return (
-    <div className="flex flex-col min-h-dvh bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="flex flex-col min-h-dvh bg-background text-foreground">
       <Header />
       <main className="flex-1">
-        <section className="relative w-full h-[70vh] md:h-[85vh] flex items-center justify-center text-center overflow-hidden">
-          {heroImage && (
-            <Image
-              src={heroImage.imageUrl}
-              alt={heroImage.description}
-              fill
-              className="object-cover"
-              priority
-              data-ai-hint={heroImage.imageHint}
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
-          
-          {/* Decorative elements */}
-          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
-          
-          <div className="relative z-10 p-6 max-w-5xl mx-auto animate-fade-in">
-            <div className="inline-block mb-4 px-4 py-2 bg-accent/90 text-accent-foreground rounded-full text-sm font-semibold">
-              ✨ AI-Powered Fashion Technology
-            </div>
-            <h1 className="text-5xl md:text-7xl font-headline font-bold tracking-tight text-white leading-tight">
-              Redefine Your Style
-              <span className="block mt-2 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                with AI
-              </span>
+        <section className="container mx-auto px-6 py-24 md:py-32 grid md:grid-cols-2 gap-12 items-center">
+          <div className="animate-fade-in space-y-6">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tighter leading-tight">
+              Your Personal AI Stylist.
             </h1>
-            <p className="mt-6 text-lg md:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
-              Experience the future of fashion with personalized recommendations, virtual try-ons, 
-              and AI-powered styling tools that understand your unique taste.
+            <p className="text-lg md:text-xl text-muted-foreground max-w-lg">
+              Upload your clothes, take a photo, and see yourself in new outfits in seconds. Your virtual wardrobe awaits.
             </p>
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300 hover:scale-105">
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <Button asChild size="lg" className="shadow-lg transition-transform hover:scale-105">
                 <Link href="/dashboard">
-                  <Bot className="mr-2 h-5 w-5" />
-                  Get Started Free
+                  Try it Now <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20 text-white backdrop-blur-sm transition-all duration-300 hover:scale-105">
+              <Button asChild size="lg" variant="outline" className="transition-transform hover:scale-105">
                 <Link href="/business/dashboard">
-                  <Palette className="mr-2 h-5 w-5" />
                   For Businesses
                 </Link>
               </Button>
             </div>
           </div>
+          <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden shadow-2xl shadow-primary/10 animate-fade-in-delay">
+            {heroImage && (
+              <Image
+                src={heroImage.imageUrl}
+                alt={heroImage.description}
+                fill
+                priority
+                className="object-cover"
+                data-ai-hint={heroImage.imageHint}
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+          </div>
         </section>
 
-        <section id="features" className="py-20 md:py-28 relative">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-16 animate-slide-up">
-              <div className="inline-block mb-4 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold">
-                Features
-              </div>
-              <h2 className="text-4xl md:text-5xl font-headline font-bold text-foreground">
-                Everything You Need
+        <section id="features" className="py-20 md:py-28 bg-muted/50">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold">
+                How It Works
               </h2>
               <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-                Powerful AI tools designed for fashion enthusiasts and businesses alike.
+                A simple and magical process to redefine your style.
               </p>
             </div>
-            <div className="mt-12 grid gap-8 md:grid-cols-3">
-              <Card className="group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 border-2 hover:border-primary/50 hover:-translate-y-2 bg-card/50 backdrop-blur-sm">
-                <CardHeader className="items-center text-center space-y-4">
-                  <div className="p-5 bg-gradient-to-br from-primary to-primary/70 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <Bot className="w-10 h-10 text-white" />
-                  </div>
-                  <CardTitle className="text-2xl">AI Style Recommendations</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <p className="text-muted-foreground leading-relaxed">Get personalized outfit suggestions based on your body type, color harmony, and unique style preferences powered by advanced AI.</p>
-                </CardContent>
-              </Card>
-              <Card className="group hover:shadow-2xl hover:shadow-accent/10 transition-all duration-300 border-2 hover:border-accent/50 hover:-translate-y-2 bg-card/50 backdrop-blur-sm">
-                <CardHeader className="items-center text-center space-y-4">
-                  <div className="p-5 bg-gradient-to-br from-accent to-accent/70 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <Scan className="w-10 h-10 text-accent-foreground" />
-                  </div>
-                  <CardTitle className="text-2xl">Virtual Try-On</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <p className="text-muted-foreground leading-relaxed">Visualize outfits, hairstyles, and accessories with our cutting-edge generative AI technology for realistic virtual try-ons.</p>
-                </CardContent>
-              </Card>
-              <Card className="group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 border-2 hover:border-primary/50 hover:-translate-y-2 bg-card/50 backdrop-blur-sm">
-                <CardHeader className="items-center text-center space-y-4">
-                  <div className="p-5 bg-gradient-to-br from-primary/80 to-accent/80 rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <Palette className="w-10 h-10 text-white" />
-                  </div>
-                  <CardTitle className="text-2xl">Visual Catalogs</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                 <p className="text-muted-foreground leading-relaxed">Businesses can automatically create stunning, interactive product catalogs that engage customers and drive sales.</p>
-                </CardContent>
-              </Card>
+            <div className="grid gap-10 md:grid-cols-3 text-center">
+              <div className="space-y-4">
+                <div className="mx-auto w-16 h-16 flex items-center justify-center bg-primary/10 text-primary rounded-full">
+                  <span className="font-bold text-2xl">1</span>
+                </div>
+                <h3 className="text-xl font-semibold">Upload Your Wardrobe</h3>
+                <p className="text-muted-foreground">Add photos of yourself and your clothing items. We'll digitize your closet.</p>
+              </div>
+              <div className="space-y-4">
+                <div className="mx-auto w-16 h-16 flex items-center justify-center bg-primary/10 text-primary rounded-full">
+                  <span className="font-bold text-2xl">2</span>
+                </div>
+                <h3 className="text-xl font-semibold">Select & Generate</h3>
+                <p className="text-muted-foreground">Pick a photo of yourself and the clothes you want to try on.</p>
+              </div>
+              <div className="space-y-4">
+                <div className="mx-auto w-16 h-16 flex items-center justify-center bg-primary/10 text-primary rounded-full">
+                  <span className="font-bold text-2xl">3</span>
+                </div>
+                <h3 className="text-xl font-semibold">See the Magic</h3>
+                <p className="text-muted-foreground">Our AI generates a realistic image of you wearing the selected outfit.</p>
+              </div>
             </div>
           </div>
         </section>
       </main>
-      <footer className="py-8 bg-gradient-to-b from-muted/50 to-muted border-t border-border">
-        <div className="container mx-auto px-4 text-center">
+      <footer className="border-t border-border">
+        <div className="container mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between">
           <Logo />
-          <p className="mt-4 text-sm text-muted-foreground">
+          <p className="mt-4 sm:mt-0 text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} StyleAI Studio. All rights reserved.
           </p>
         </div>
