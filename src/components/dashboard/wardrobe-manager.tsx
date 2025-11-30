@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusCircle, Upload, X, Eye } from "lucide-react";
 import { useWardrobe } from "@/contexts/wardrobe-context";
+import { useBusinessAssets } from "@/contexts/business-asset-context";
 import type { UploadedImage } from "@/contexts/wardrobe-context";
 import {
   AlertDialog,
@@ -18,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 
 type ImageCategory = {
@@ -30,21 +32,31 @@ type ImageCategory = {
 
 export default function WardrobeManager() {
   const { userPhotos, wardrobeItems, addUserPhotos, addWardrobeItems, removeUserPhoto, removeWardrobeItem } = useWardrobe();
-  const [imageToDelete, setImageToDelete] = useState<{ image: UploadedImage; type: 'user' | 'wardrobe' } | null>(null);
+  const { mannequinImages, productImages, addMannequinImages, addProductImages, removeMannequinImage, removeProductImage } = useBusinessAssets();
+  const [imageToDelete, setImageToDelete] = useState<{ image: UploadedImage; type: 'user' | 'wardrobe' | 'mannequin' | 'product' } | null>(null);
   const [imageToPreview, setImageToPreview] = useState<UploadedImage | null>(null);
 
   const handleDelete = () => {
     if (imageToDelete) {
-      if (imageToDelete.type === 'user') {
-        removeUserPhoto(imageToDelete.image);
-      } else {
-        removeWardrobeItem(imageToDelete.image);
+      switch (imageToDelete.type) {
+        case 'user':
+          removeUserPhoto(imageToDelete.image);
+          break;
+        case 'wardrobe':
+          removeWardrobeItem(imageToDelete.image);
+          break;
+        case 'mannequin':
+          removeMannequinImage(imageToDelete.image.id);
+          break;
+        case 'product':
+          removeProductImage(imageToDelete.image.id);
+          break;
       }
       setImageToDelete(null);
     }
   };
 
-  const categories: ImageCategory[] = [
+  const personalCategories: ImageCategory[] = [
     {
       title: "My Photos",
       description: "Your full-body and face photos for accurate recommendations.",
@@ -61,7 +73,24 @@ export default function WardrobeManager() {
     },
   ];
 
-  return (
+  const businessCategories: ImageCategory[] = [
+    {
+      title: "Mannequin Assets",
+      description: "Base images of mannequins for virtual try-ons.",
+      images: mannequinImages,
+      onUpload: addMannequinImages,
+      onRemove: (image: UploadedImage) => setImageToDelete({ image, type: 'mannequin' }),
+    },
+    {
+      title: "Product Assets",
+      description: "Images of your products with transparent backgrounds.",
+      images: productImages,
+      onUpload: addProductImages,
+      onRemove: (image: UploadedImage) => setImageToDelete({ image, type: 'product' }),
+    },
+  ];
+
+  const renderCategories = (categories: ImageCategory[]) => (
     <div className="space-y-8">
       {categories.map((category) => (
         <Card key={category.title} className="border-2 transition-all shadow-lg">
@@ -128,20 +157,39 @@ export default function WardrobeManager() {
                 </div>
                 <p className="text-lg font-semibold">No items yet</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Click "Upload" to add your first item and start building your digital wardrobe.
+                  Click "Upload" to add your first item.
                 </p>
               </div>
             )}
           </CardContent>
         </Card>
       ))}
+    </div>
+  );
+
+  return (
+    <div>
+      <Tabs defaultValue="personal" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsTrigger value="personal">Personal Assets</TabsTrigger>
+          <TabsTrigger value="business">Business Assets</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="personal">
+          {renderCategories(personalCategories)}
+        </TabsContent>
+        
+        <TabsContent value="business">
+          {renderCategories(businessCategories)}
+        </TabsContent>
+      </Tabs>
       
       <AlertDialog open={!!imageToDelete} onOpenChange={(open) => !open && setImageToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Image?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this image from your wardrobe and Google Drive? This action cannot be undone.
+              Are you sure you want to delete this image from your assets and Google Drive? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

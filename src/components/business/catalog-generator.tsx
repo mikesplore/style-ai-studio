@@ -4,17 +4,13 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Wand2, CheckCircle,Palette, Image as ImageIcon, Download } from "lucide-react";
+import { Loader2, Wand2, CheckCircle, ImageIcon, Download, Sparkles, AlertCircle } from "lucide-react";
 import { useBusinessAssets } from "@/contexts/business-asset-context";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Textarea } from "../ui/textarea";
 
 const generationSteps = [
@@ -58,6 +54,14 @@ export default function CatalogGenerator() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleMannequinSelect = (itemUrl: string) => {
+    setSelectedMannequin(itemUrl);
+  };
+
+  const handleProductSelect = (itemUrl: string) => {
+    setSelectedProduct(itemUrl);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -112,113 +116,215 @@ export default function CatalogGenerator() {
   
   const hasPrerequisites = mannequinImages.length > 0 && productImages.length > 0;
 
+  // Empty state - no assets uploaded yet
+  if (!hasPrerequisites) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+          <AlertCircle className="w-10 h-10 text-primary" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2">Upload Business Assets</h2>
+        <p className="text-muted-foreground mb-6 max-w-md">
+          Upload mannequin and product photos to start creating professional catalog images.
+        </p>
+        <Button asChild size="lg">
+          <Link href="/dashboard/wardrobe">
+            <ImageIcon className="mr-2 h-5 w-5" />
+            Go to Asset Manager
+          </Link>
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <Card className="w-full mx-auto border-2 shadow-xl bg-card/80 backdrop-blur-sm">
-      <CardContent className="p-8">
-        <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold tracking-tight">AI Visual Catalog Generator</h1>
-            <p className="text-lg text-muted-foreground mt-2">Create professional catalog images by combining your assets.</p>
+    <div className="h-full flex flex-col lg:flex-row gap-4 lg:gap-6">
+      {/* Left Panel - Selections */}
+      <div className="flex-1 flex flex-col min-w-0 lg:max-w-md">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Create Catalog</h2>
+          <Badge variant="secondary" className="text-xs">
+            Business Tools
+          </Badge>
+        </div>
+
+        {/* Selection sections */}
+        <div className="flex-1 flex flex-col gap-4 min-h-0">
+          {/* Mannequin Selection */}
+          <div className="flex-1 min-h-0 flex flex-col">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">1</div>
+              <span className="text-sm font-medium">Mannequin</span>
+              {selectedMannequin && <CheckCircle className="w-4 h-4 text-green-500 ml-auto" />}
+            </div>
+            <ScrollArea className="flex-1 rounded-lg border bg-muted/20">
+              <div className="flex gap-2 p-3">
+                {mannequinImages.map(photo => (
+                  <button
+                    key={photo.id}
+                    onClick={() => handleMannequinSelect(photo.url)}
+                    className={cn(
+                      "relative h-24 w-16 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all",
+                      selectedMannequin === photo.url 
+                        ? "border-primary ring-2 ring-primary/20" 
+                        : "border-transparent hover:border-primary/50"
+                    )}
+                  >
+                    <Image 
+                      src={photo.url} 
+                      alt={photo.fileName} 
+                      fill 
+                      className="object-cover"
+                      sizes="64px"
+                    />
+                    {selectedMannequin === photo.url && (
+                      <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                        <CheckCircle className="w-5 h-5 text-primary drop-shadow-md" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+                {mannequinImages.length === 0 && (
+                  <div className="flex items-center justify-center w-full py-6 text-muted-foreground">
+                    <ImageIcon className="w-6 h-6 mr-2" />
+                    <span className="text-sm">No mannequins yet</span>
+                  </div>
+                )}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          </div>
+
+          {/* Product Selection */}
+          <div className="flex-1 min-h-0 flex flex-col">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">2</div>
+              <span className="text-sm font-medium">Product</span>
+              {selectedProduct && <CheckCircle className="w-4 h-4 text-green-500 ml-auto" />}
+            </div>
+            <ScrollArea className="flex-1 rounded-lg border bg-muted/20">
+              <div className="flex gap-2 p-3">
+                {productImages.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleProductSelect(item.url)}
+                    className={cn(
+                      "relative h-24 w-24 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all",
+                      selectedProduct === item.url 
+                        ? "border-primary ring-2 ring-primary/20" 
+                        : "border-transparent hover:border-primary/50"
+                    )}
+                  >
+                    <Image 
+                      src={item.url} 
+                      alt={item.fileName} 
+                      fill 
+                      className="object-cover"
+                      sizes="96px"
+                    />
+                    {selectedProduct === item.url && (
+                      <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                        <CheckCircle className="w-6 h-6 text-primary drop-shadow-md" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+                {productImages.length === 0 && (
+                  <div className="flex items-center justify-center w-full py-6 text-muted-foreground">
+                    <ImageIcon className="w-6 h-6 mr-2" />
+                    <span className="text-sm">No products yet</span>
+                  </div>
+                )}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          </div>
+
+          {/* Style Description */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">3</div>
+              <span className="text-sm font-medium">Catalog Style</span>
+            </div>
+            <Textarea 
+              value={catalogStyle} 
+              onChange={e => setCatalogStyle(e.target.value)} 
+              placeholder="e.g., Dark, moody, high-fashion editorial..." 
+              rows={3} 
+              disabled={loading}
+              className="resize-none"
+            />
+          </div>
+        </div>
+
+        {/* Generate Button */}
+        <Button 
+          onClick={handleSubmit} 
+          disabled={loading || !selectedMannequin || !selectedProduct} 
+          className="w-full mt-4 h-12 text-base font-semibold"
+          size="lg"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <Sparkles className="mr-2 h-5 w-5" />
+              Generate Catalog
+            </>
+          )}
+        </Button>
+      </div>
+
+      {/* Right Panel - Result */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">4</div>
+            <span className="text-xl font-semibold">Result</span>
+          </div>
+          {resultImage && !loading && (
+            <Button onClick={handleDownload} variant="outline" size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Download
+            </Button>
+          )}
         </div>
         
-        {!hasPrerequisites && (
-            <Alert className="mb-6 max-w-2xl mx-auto border-accent/50 bg-accent/10">
-              <AlertTitle className="font-semibold">Upload Your Business Assets First</AlertTitle>
-              <AlertDescription>
-                To get started, please add your mannequin and product photos in the "My Wardrobe" tab (business assets section will appear there).
-              </AlertDescription>
-            </Alert>
-        )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div className="space-y-6">
-                <div>
-                    <h3 className="font-semibold text-lg mb-3">1. Select Mannequin Asset</h3>
-                    <ScrollArea className="h-48 w-full rounded-md border p-4">
-                        <div className="flex space-x-4">
-                            {mannequinImages.length > 0 ? mannequinImages.map(photo => (
-                                <div key={photo.id} className="relative aspect-[3/4] h-36 flex-shrink-0" onClick={() => setSelectedMannequin(photo.url)}>
-                                    <Image src={photo.url} alt={photo.fileName} fill className={cn("object-cover rounded-md cursor-pointer transition-all border-4", selectedMannequin === photo.url ? "border-primary" : "border-transparent")} />
-                                    {selectedMannequin === photo.url && (
-                                    <div className="absolute top-1 right-1 bg-primary rounded-full p-1">
-                                        <CheckCircle className="w-5 h-5 text-white" />
-                                    </div>
-                                    )}
-                                </div>
-                            )) : (
-                                <div className="flex flex-col items-center justify-center w-full h-36 text-muted-foreground">
-                                    <ImageIcon className="w-10 h-10 mb-2"/>
-                                    <p>Your mannequin images will appear here.</p>
-                                </div>
-                            )}
-                        </div>
-                    </ScrollArea>
-                </div>
-                
-                <div>
-                    <h3 className="font-semibold text-lg mb-3">2. Select Product Asset</h3>
-                    <ScrollArea className="h-48 w-full rounded-md border p-4">
-                        <div className="flex space-x-4">
-                            {productImages.length > 0 ? productImages.map(item => (
-                                <div key={item.id} className="relative aspect-square h-36 flex-shrink-0" onClick={() => setSelectedProduct(item.url)}>
-                                    <Image src={item.url} alt={item.fileName} fill className={cn("object-cover rounded-md cursor-pointer transition-all border-4", selectedProduct === item.url ? "border-primary" : "border-transparent")} />
-                                    {selectedProduct === item.url && (
-                                    <div className="absolute top-1 right-1 bg-primary rounded-full p-1">
-                                        <CheckCircle className="w-5 h-5 text-white" />
-                                    </div>
-                                    )}
-                                </div>
-                            )) : (
-                                <div className="flex flex-col items-center justify-center w-full h-36 text-muted-foreground">
-                                    <Palette className="w-10 h-10 mb-2"/>
-                                    <p>Your product images will appear here.</p>
-                                </div>
-                            )}
-                        </div>
-                    </ScrollArea>
-                </div>
-                
-                <div>
-                    <h3 className="font-semibold text-lg mb-3">3. Describe Catalog Style</h3>
-                     <Textarea value={catalogStyle} onChange={e => setCatalogStyle(e.target.value)} placeholder="e.g., Dark, moody, high-fashion editorial..." rows={3} disabled={loading} />
-                </div>
-
-                <Button 
-                    onClick={handleSubmit} 
-                    disabled={loading || !selectedMannequin || !selectedProduct} 
-                    className="w-full h-14 text-lg bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center gap-3"
-                >
-                    {loading ? 'Generating...' : 'Generate Catalog Image'}
-                    <Wand2 className="h-5 w-5" />
-                </Button>
+        <div className="flex-1 rounded-xl border-2 border-dashed bg-muted/20 flex items-center justify-center overflow-hidden relative min-h-[300px] lg:min-h-0">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center gap-4 text-center p-6">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                <Wand2 className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+              </div>
+              <p className="text-sm text-muted-foreground font-medium animate-pulse max-w-[200px]">
+                {loadingText}
+              </p>
             </div>
-
-            <div className="space-y-4 sticky top-24">
-                 <h3 className="font-semibold text-lg text-center">4. See The Result!</h3>
-                <div className="relative w-full aspect-[4/5] rounded-xl border-2 border-dashed flex items-center justify-center bg-muted overflow-hidden shadow-inner">
-                    {loading ? (
-                    <div className="flex flex-col items-center justify-center gap-4 text-center px-4">
-                        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                        <p className="text-muted-foreground font-medium animate-fade-in">{loadingText}</p>
-                    </div>
-                    ) : resultImage ? (
-                    <Image src={resultImage} alt="Generated catalog image" fill className="object-cover animate-fade-in" />
-                    ) : (
-                    <div className="text-center text-muted-foreground p-6">
-                        <Wand2 className="mx-auto h-12 w-12 mb-2 text-primary" />
-                        <p className="text-base font-medium">Your Generated Catalog Image will appear here!</p>
-                    </div>
-                    )}
-                </div>
-                 {resultImage && !loading && (
-                  <Button onClick={handleDownload} className="w-full" variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Image
-                  </Button>
-                )}
+          ) : resultImage ? (
+            <Image 
+              src={resultImage} 
+              alt="Generated catalog image" 
+              fill 
+              className="object-contain p-2" 
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center p-6 text-muted-foreground">
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                <Wand2 className="w-8 h-8" />
+              </div>
+              <p className="font-medium">Your catalog image will appear here</p>
+              <p className="text-sm mt-1">Select assets and style, then generate</p>
             </div>
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
