@@ -1,0 +1,6 @@
+<!-- This is a placeholder SVG that will be converted to PNG icons -->
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="64" fill="#000000"/>
+  <path d="M256 128L307.2 230.4H408.8L332.8 281.6L364.8 384L256 320L147.2 384L179.2 281.6L103.2 230.4H204.8L256 128Z" fill="white"/>
+  <circle cx="256" cy="256" r="8" fill="#FFD700"/>
+</svg>
