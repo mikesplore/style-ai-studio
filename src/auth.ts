@@ -1,5 +1,29 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+
+// Function to verify Google JWT token from One Tap
+async function verifyGoogleToken(credential: string) {
+  try {
+    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+    const payload = await response.json();
+    
+    if (payload.aud !== process.env.GOOGLE_CLIENT_ID) {
+      throw new Error('Invalid audience');
+    }
+    
+    return {
+      id: payload.sub,
+      email: payload.email,
+      name: payload.name,
+      image: payload.picture,
+      email_verified: payload.email_verified,
+    };
+  } catch (error) {
+    console.error('Error verifying Google token:', error);
+    return null;
+  }
+}
 
 async function refreshAccessToken(token: any) {
   try {
@@ -56,6 +80,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           access_type: "offline",
           prompt: "consent",
         },
+      },
+    }),
+    // Add credentials provider for Google One Tap
+    CredentialsProvider({
+      id: "google-one-tap",
+      name: "Google One Tap",
+      credentials: {
+        credential: { label: "Credential", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.credential) return null;
+        
+        const user = await verifyGoogleToken(credentials.credential);
+        return user;
       },
     }),
   ],
