@@ -3,7 +3,8 @@
 
 StyleAI Studio is a cutting-edge web application that leverages generative AI to revolutionize how users visualize and manage fashion. It offers a suite of tools for both personal style exploration and professional business catalog creation, providing a seamless and intuitive experience powered by Google's Gemini models.
 
-![StyleAI Studio Landing Page](https://storage.googleapis.com/aifirebase.appspot.com/user-generated/2024-07-29/style-ai-landing.png)
+<img width="1911" height="1117" alt="style" src="https://github.com/user-attachments/assets/fbd2d695-4f7a-444f-a514-62d794354e29" />
+
 
 ---
 
