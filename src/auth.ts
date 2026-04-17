@@ -97,7 +97,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-  debug: true, // Enable debug mode to see more detailed logs
+  debug: process.env.AUTH_DEBUG === "true",
   callbacks: {
     async jwt({ token, user, account }) {
       // Initial sign in

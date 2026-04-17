@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/common/header';
 import Logo from '@/components/common/logo';
-import { ArrowRight, Scan, Shirt, Wand2, Presentation, Video, Star, Users, Shield, Mail, MessageSquare, HelpCircle, ExternalLink, Github, Twitter, Instagram, Play } from 'lucide-react';
+import { ArrowRight, Scan, Shirt, Wand2, Star, Users, Shield, Mail, MessageSquare, HelpCircle, ExternalLink, Github, Twitter, Instagram } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -60,6 +60,7 @@ export default function Home() {
                       src="https://images.unsplash.com/photo-1552664199-fd31f7431a55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzdHlsaXNoJTIwd29tYW4lMjBtaW5pbWFsfGVufDB8fHx8MTc2NzE1ODIzNnww&ixlib=rb-4.1.0&q=80&w=1080"
                       alt="A stylish woman in a bright, modern outfit looking at her phone"
                       fill
+                      unoptimized
                       priority
                       className="object-cover"
                       data-ai-hint="stylish woman"
@@ -117,40 +118,6 @@ export default function Home() {
                   <p className="text-muted-foreground leading-relaxed">
                     Our AI generates a realistic image of you wearing the selected outfit in seconds.
                   </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Demo Video Section */}
-        <section className="w-full">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-            <div className="py-20 sm:py-24 lg:py-28">
-              <div className="text-center mb-16 max-w-3xl mx-auto">
-                <Badge variant="secondary" className="mb-4">
-                  <Play className="w-4 h-4 mr-2" />
-                  See It In Action
-                </Badge>
-                <h2 className="text-4xl sm:text-5xl font-bold mb-4">
-                  Watch StyleAI in Action
-                </h2>
-                <p className="text-lg text-muted-foreground">
-                  See how easy it is to create stunning virtual try-ons in just a few clicks.
-                </p>
-              </div>
-
-              <div className="max-w-5xl mx-auto">
-                <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl bg-muted">
-                  <video
-                    className="w-full h-full object-cover"
-                    controls
-                    poster="/uploads/demo video/poster.jpg"
-                    preload="metadata"
-                  >
-                    <source src="/uploads/demo video/InShot_20251128_182447273.mp4" type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
                 </div>
               </div>
             </div>
